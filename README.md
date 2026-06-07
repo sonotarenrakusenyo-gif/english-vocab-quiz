@@ -11,6 +11,40 @@ python3 -m http.server 8080
 
 ブラウザで `http://localhost:8080` を開いてください。
 
+## スマホで使う（GitHub + Vercel）
+
+このアプリはビルド不要の静的サイトなので、GitHub に push するだけで Vercel から公開できます。
+
+### 1. GitHub にリポジトリを作成
+
+GitHub で新しいリポジトリ（例: `english-vocab-quiz`）を作成します。
+
+### 2. 初回 push
+
+```bash
+cd /Users/ruka/Documents/english-vocab-quiz
+git remote add origin https://github.com/<あなたのユーザー名>/english-vocab-quiz.git
+git push -u origin main
+```
+
+### 3. Vercel に接続
+
+1. [vercel.com](https://vercel.com) にログイン
+2. **Add New → Project**
+3. 上記 GitHub リポジトリを Import
+4. 設定はそのままで OK（Framework: Other / Build Command: なし / Output: ルート）
+5. **Deploy**
+
+以降は `main` に push するたびに自動で再デプロイされます。スマホのブラウザで表示された URL をホーム画面に追加すると、アプリのように使えます。
+
+### CLI から直接デプロイする場合
+
+```bash
+vercel login
+cd /Users/ruka/Documents/english-vocab-quiz
+vercel --prod
+```
+
 ## 機能
 
 - 初期表示は「日本語の意味」と「音声再生ボタン」のみ
