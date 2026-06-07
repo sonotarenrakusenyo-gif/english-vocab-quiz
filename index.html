@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>英単語クイズカード</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="header__top">
+          <h1 class="header__title">英単語クイズカード</h1>
+          <p class="header__subtitle" id="headerSubtitle">意味を見て、答えを思い出してから確認しよう</p>
+        </div>
+
+        <div class="toolbar" aria-label="学習オプション">
+          <div class="toolbar__group">
+            <p class="toolbar__label">検索・ジャンプ</p>
+            <div class="search-row">
+              <input
+                class="search-input"
+                id="searchInput"
+                type="search"
+                placeholder="英語・日本語・#番号で検索"
+                autocomplete="off"
+                aria-label="単語を検索"
+              />
+              <button class="btn btn--tool btn--jump" id="jumpBtn" type="button">移動</button>
+            </div>
+            <ul class="search-results search-results--hidden" id="searchResults" aria-label="検索結果"></ul>
+          </div>
+
+          <div class="toolbar__group">
+            <p class="toolbar__label">カテゴリ</p>
+            <div class="filter-chips" id="categoryFilters" role="group" aria-label="カテゴリフィルター"></div>
+          </div>
+
+          <div class="toolbar__group">
+            <p class="toolbar__label">出題対象</p>
+            <div class="filter-chips" id="studyFilters" role="group" aria-label="出題対象フィルター"></div>
+          </div>
+
+          <div class="toolbar__group">
+            <p class="toolbar__label">出題モード</p>
+            <div class="filter-chips" id="quizModeFilters" role="group" aria-label="出題モード"></div>
+          </div>
+
+          <div class="toolbar__group toolbar__group--actions">
+            <button class="btn btn--tool" id="shuffleBtn" type="button" aria-pressed="false">
+              🔀 シャッフル
+            </button>
+            <button class="btn btn--tool" id="autoAdvanceBtn" type="button" aria-pressed="false">
+              ⏭ 自動で次へ
+            </button>
+            <button class="btn btn--tool btn--tool-muted" id="exportBtn" type="button">
+              ⬇ バックアップ
+            </button>
+            <button class="btn btn--tool btn--tool-muted" id="importBtn" type="button">
+              ⬆ 復元
+            </button>
+            <input class="import-input" id="importInput" type="file" accept="application/json,.json" hidden />
+            <button class="btn btn--tool btn--tool-muted" id="resetProgressBtn" type="button">
+              履歴をリセット
+            </button>
+          </div>
+        </div>
+
+        <div class="stats" id="statsBar" aria-live="polite">
+          <span class="stats__item">復習リスト: <strong id="reviewCount">0</strong>語</span>
+          <span class="stats__item">覚えた: <strong id="knownCount">0</strong>語</span>
+          <span class="stats__item">未確認: <strong id="unseenCount">0</strong>語</span>
+          <span class="stats__item">今日: <strong id="todayStudiedCount">0</strong>語</span>
+          <span class="stats__item">🔥 連続: <strong id="streakCount">0</strong>日</span>
+          <span class="stats__item">★: <strong id="favoriteCount">0</strong>語</span>
+        </div>
+
+        <section class="category-chart" id="categoryChart" aria-label="カテゴリ別の覚えた率"></section>
+
+        <div class="progress" aria-label="進捗">
+          <div class="progress__bar">
+            <div class="progress__fill" id="progressFill"></div>
+          </div>
+          <span class="progress__text" id="progressText">1 / 110</span>
+        </div>
+      </header>
+
+      <main class="main">
+        <article
+          class="card"
+          id="card"
+          tabindex="0"
+          role="button"
+          aria-label="カードをタップして答えを表示"
+        >
+          <div class="card__meta">
+            <span class="card__category" id="categoryLabel"></span>
+            <div class="card__meta-actions">
+              <button
+                class="btn btn--favorite"
+                id="favoriteBtn"
+                type="button"
+                aria-label="お気に入りに追加"
+                aria-pressed="false"
+              >
+                ☆
+              </button>
+              <span class="card__number" id="cardNumber"></span>
+            </div>
+          </div>
+
+          <section class="card__question">
+            <p class="card__label" id="questionLabel">日本語の意味</p>
+            <p class="card__question-text" id="questionText"></p>
+          </section>
+
+          <div class="card__audio-row" id="audioRow">
+            <button class="btn btn--audio" id="playBtn" type="button" aria-label="英単語の発音を再生">
+              <span class="btn__icon" aria-hidden="true">🔊</span>
+              <span>音声を再生</span>
+            </button>
+            <p class="card__audio-hint" id="audioHint">答えを見る前に、発音を当ててみよう</p>
+          </div>
+
+          <section class="card__answer card__answer--hidden" id="answerSection" aria-hidden="true">
+            <div class="card__answer-block" id="wordBlock">
+              <p class="card__label" id="wordLabel">英単語</p>
+              <p class="card__word" id="word"></p>
+            </div>
+            <div class="card__answer-block" id="meaningBlock">
+              <p class="card__label">日本語の意味</p>
+              <p class="card__meaning-answer" id="answerMeaning"></p>
+            </div>
+            <div class="card__answer-block" id="readingBlock">
+              <p class="card__label">カタカナの読み方</p>
+              <p class="card__reading" id="reading"></p>
+            </div>
+
+            <div class="card__patterns-wrap" id="patternsWrap">
+              <div class="card__patterns-header">
+                <p class="card__label">使い方パターン・会話例</p>
+                <button class="btn btn--copy" id="copyWordBtn" type="button" hidden>
+                  📋 全文コピー
+                </button>
+              </div>
+              <div class="card__patterns" id="patternsContainer"></div>
+            </div>
+          </section>
+
+          <button class="btn btn--reveal" id="revealBtn" type="button">
+            答えを見る
+          </button>
+
+          <div class="card__rating card__rating--hidden" id="ratingSection" aria-hidden="true">
+            <p class="card__rating-label">覚えられましたか？</p>
+            <div class="card__rating-actions">
+              <button class="btn btn--know" id="knowBtn" type="button">✓ 覚えていた</button>
+              <button class="btn btn--review" id="reviewBtn" type="button">✗ 復習リストへ</button>
+            </div>
+          </div>
+        </article>
+      </main>
+
+      <nav class="nav" aria-label="単語ナビゲーション">
+        <button class="btn btn--nav" id="prevBtn" type="button" disabled>
+          ← 前へ
+        </button>
+        <button class="btn btn--nav btn--nav-primary" id="nextBtn" type="button">
+          次へ →
+        </button>
+      </nav>
+
+      <footer class="shortcuts" aria-label="キーボードショートカット">
+        <span><kbd>←</kbd><kbd>→</kbd> 前後</span>
+        <span>スワイプで前後</span>
+        <span><kbd>/</kbd> 検索</span>
+        <span><kbd>Space</kbd> 答えを見る</span>
+        <span><kbd>S</kbd> 音声再生</span>
+        <span><kbd>1</kbd> 覚えていた</span>
+        <span><kbd>2</kbd> 復習リストへ</span>
+      </footer>
+
+      <div class="toast toast--hidden" id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
