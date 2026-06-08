@@ -44,6 +44,11 @@ const categoryMap = Object.fromEntries(
 );
 
 const elements = {
+  activeSummary: document.getElementById("activeSummary"),
+  searchToggleBtn: document.getElementById("searchToggleBtn"),
+  settingsToggleBtn: document.getElementById("settingsToggleBtn"),
+  searchPanel: document.getElementById("searchPanel"),
+  settingsPanel: document.getElementById("settingsPanel"),
   headerSubtitle: document.getElementById("headerSubtitle"),
   card: document.getElementById("card"),
   categoryLabel: document.getElementById("categoryLabel"),
@@ -289,6 +294,7 @@ function rebuildActiveWords({ resetIndex = true, resume = false } = {}) {
   updateFilterButtons();
   updateToolButtons();
   updateStats();
+  updateActiveSummary();
   renderCategoryChart();
   saveProgress();
 }
@@ -666,6 +672,75 @@ function updateStats() {
   elements.favoriteCount.textContent = String(state.favoriteIds.size);
 }
 
+function getCategorySummaryLabel(categoryId) {
+  if (categoryId === "all") {
+    return "すべて";
+  }
+
+  const category = WORD_CATEGORIES.find((item) => item.id === categoryId);
+  if (!category) {
+    return "すべて";
+  }
+
+  return category.label.split("・")[0];
+}
+
+function updateActiveSummary() {
+  const studyLabel =
+    STUDY_FILTERS.find((filter) => filter.id === state.studyFilter)?.label ?? "すべて";
+  const modeLabel = QUIZ_MODES[state.quizMode]?.label ?? "意味→英語";
+  const parts = [getCategorySummaryLabel(state.categoryFilter), studyLabel, modeLabel];
+
+  if (state.shuffled) {
+    parts.push("シャッフル");
+  }
+
+  if (state.autoAdvance) {
+    parts.push("自動送り");
+  }
+
+  elements.activeSummary.textContent = parts.join(" · ");
+}
+
+function setSearchPanelOpen(open) {
+  elements.searchPanel.classList.toggle("search-panel--hidden", !open);
+  elements.searchToggleBtn.setAttribute("aria-expanded", String(open));
+  elements.searchToggleBtn.classList.toggle("btn--icon-active", open);
+  elements.searchToggleBtn.setAttribute("aria-label", open ? "検索を閉じる" : "検索を開く");
+
+  if (open) {
+    elements.searchInput.focus();
+  }
+}
+
+function setSettingsPanelOpen(open) {
+  elements.settingsPanel.classList.toggle("settings-panel--hidden", !open);
+  elements.settingsToggleBtn.setAttribute("aria-expanded", String(open));
+  elements.settingsToggleBtn.classList.toggle("btn--icon-active", open);
+  elements.settingsToggleBtn.setAttribute(
+    "aria-label",
+    open ? "学習設定を閉じる" : "学習設定を開く",
+  );
+}
+
+function toggleSearchPanel() {
+  const willOpen = elements.searchPanel.classList.contains("search-panel--hidden");
+  setSearchPanelOpen(willOpen);
+
+  if (willOpen) {
+    setSettingsPanelOpen(false);
+  }
+}
+
+function toggleSettingsPanel() {
+  const willOpen = elements.settingsPanel.classList.contains("settings-panel--hidden");
+  setSettingsPanelOpen(willOpen);
+
+  if (willOpen) {
+    setSearchPanelOpen(false);
+  }
+}
+
 function renderCategoryChart() {
   const rows = WORD_CATEGORIES.map((category) => {
     const words = WORDS.filter((word) => word.category === category.id);
@@ -873,6 +948,8 @@ function updateToolButtons() {
   elements.autoAdvanceBtn.classList.toggle("btn--tool-active", state.autoAdvance);
   elements.autoAdvanceBtn.setAttribute("aria-pressed", String(state.autoAdvance));
   elements.autoAdvanceBtn.textContent = state.autoAdvance ? "⏭ 自動送り ON" : "⏭ 自動で次へ";
+
+  updateActiveSummary();
 }
 
 function renderCategoryFilters() {
@@ -1161,6 +1238,9 @@ function bindEvents() {
 
   elements.resetProgressBtn.addEventListener("click", resetProgress);
 
+  elements.searchToggleBtn.addEventListener("click", toggleSearchPanel);
+  elements.settingsToggleBtn.addEventListener("click", toggleSettingsPanel);
+
   elements.exportBtn.addEventListener("click", exportProgressBackup);
 
   elements.importBtn.addEventListener("click", () => {
@@ -1229,7 +1309,10 @@ function bindEvents() {
   });
 
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".search-row") && !event.target.closest(".search-results")) {
+    if (
+      !event.target.closest("#searchPanel") &&
+      !event.target.closest("#searchToggleBtn")
+    ) {
       hideSearchResults();
     }
   });
@@ -1237,6 +1320,8 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "/" && !isTypingTarget(event.target)) {
       event.preventDefault();
+      setSearchPanelOpen(true);
+      setSettingsPanelOpen(false);
       elements.searchInput.focus();
       elements.searchInput.select();
       return;
@@ -1297,6 +1382,7 @@ function init() {
   renderQuizModeFilters();
   bindEvents();
   initSwipeNavigation();
+  updateActiveSummary();
   rebuildActiveWords({ resume: true });
 }
 
