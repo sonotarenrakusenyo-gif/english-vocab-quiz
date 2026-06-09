@@ -51,6 +51,16 @@
           <span class="progress__text" id="progressText">1 / 110</span>
         </div>
 
+        <button
+          class="app-bar__review-badge"
+          id="reviewBadgeBtn"
+          type="button"
+          aria-pressed="false"
+          aria-label="復習リストの単語だけ出題する"
+        >
+          📌 復習リスト <strong id="reviewBadgeCount">0</strong>語
+        </button>
+
         <div class="search-panel search-panel--hidden" id="searchPanel">
           <div class="search-row">
             <input
@@ -134,8 +144,15 @@
               答えを見る
             </button>
 
+            <button class="btn btn--back" id="backBtn" type="button" hidden>
+              ↑ 問題に戻る
+            </button>
+
             <div class="card__rating card__rating--hidden" id="ratingSection" aria-hidden="true">
               <p class="card__rating-label">覚えられましたか？</p>
+              <p class="card__rating-hint">
+                「復習リストへ」で追加。上部の 📌 復習リスト から復習できます。
+              </p>
               <div class="card__rating-actions">
                 <button class="btn btn--know" id="knowBtn" type="button">✓ 覚えていた</button>
                 <button class="btn btn--review" id="reviewBtn" type="button">✗ 復習リストへ</button>
@@ -172,6 +189,7 @@
 
           <div class="toolbar__group">
             <p class="toolbar__label">出題対象</p>
+            <p class="toolbar__hint">「復習リストへ」で追加した単語は「復習リスト」で出題できます</p>
             <div class="filter-chips" id="studyFilters" role="group" aria-label="出題対象フィルター"></div>
           </div>
 
@@ -201,7 +219,7 @@
         </div>
 
         <div class="stats" id="statsBar" aria-live="polite">
-          <span class="stats__item">復習リスト: <strong id="reviewCount">0</strong>語</span>
+          <span class="stats__item stats__item--highlight">📌 復習リスト: <strong id="reviewCount">0</strong>語</span>
           <span class="stats__item">覚えた: <strong id="knownCount">0</strong>語</span>
           <span class="stats__item">未確認: <strong id="unseenCount">0</strong>語</span>
           <span class="stats__item">今日: <strong id="todayStudiedCount">0</strong>語</span>

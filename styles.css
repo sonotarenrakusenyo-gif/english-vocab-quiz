@@ -97,6 +97,57 @@ body {
   white-space: nowrap;
 }
 
+.app-bar__review-badge {
+  appearance: none;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 113, 133, 0.35);
+  background: rgba(251, 113, 133, 0.12);
+  color: #fecdd3;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.app-bar__review-badge strong {
+  color: #ffe4e6;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-bar__review-badge:hover {
+  background: rgba(251, 113, 133, 0.2);
+}
+
+.app-bar__review-badge--active {
+  background: rgba(251, 113, 133, 0.24);
+  border-color: rgba(251, 113, 133, 0.55);
+  color: #fff1f2;
+}
+
+.app-bar__review-badge--pulse {
+  animation: review-badge-pulse 0.55s ease;
+}
+
+@keyframes review-badge-pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.18);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 .search-panel {
   display: grid;
   gap: 8px;
@@ -196,6 +247,13 @@ body {
   text-transform: uppercase;
 }
 
+.toolbar__hint {
+  margin: -4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
 .filter-chips {
   display: flex;
   flex-wrap: wrap;
@@ -268,6 +326,14 @@ body {
 .stats__item strong {
   color: #e2e8f0;
   font-variant-numeric: tabular-nums;
+}
+
+.stats__item--highlight {
+  color: #fecdd3;
+}
+
+.stats__item--highlight strong {
+  color: #ffe4e6;
 }
 
 .category-chart {
@@ -810,6 +876,21 @@ body {
   box-shadow: 0 10px 24px rgba(14, 165, 233, 0.28);
 }
 
+.btn--back {
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-weight: 600;
+}
+
+.btn--back:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .card--revealed .btn--reveal {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-muted);
@@ -838,9 +919,17 @@ body {
 }
 
 .card__rating-label {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   color: var(--text-muted);
   font-size: 0.88rem;
+  text-align: center;
+}
+
+.card__rating-hint {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
   text-align: center;
 }
 

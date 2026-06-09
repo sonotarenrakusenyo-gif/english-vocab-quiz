@@ -34,7 +34,7 @@ const QUIZ_MODES = {
 const STUDY_FILTERS = [
   { id: "all", label: "すべて" },
   { id: "unstudied", label: "未学習" },
-  { id: "review", label: "苦手のみ" },
+  { id: "review", label: "復習リスト" },
   { id: "favorites", label: "★お気に入り" },
   { id: "exclude-known", label: "覚えた除外" },
 ];
@@ -45,6 +45,9 @@ const categoryMap = Object.fromEntries(
 
 const elements = {
   activeSummary: document.getElementById("activeSummary"),
+  reviewBadgeBtn: document.getElementById("reviewBadgeBtn"),
+  reviewBadgeCount: document.getElementById("reviewBadgeCount"),
+  backBtn: document.getElementById("backBtn"),
   searchToggleBtn: document.getElementById("searchToggleBtn"),
   settingsToggleBtn: document.getElementById("settingsToggleBtn"),
   searchPanel: document.getElementById("searchPanel"),
@@ -328,8 +331,8 @@ function setRevealed(revealed) {
   elements.ratingSection.classList.toggle("card__rating--hidden", !revealed);
   elements.ratingSection.setAttribute("aria-hidden", String(!revealed));
   elements.card.classList.toggle("card--revealed", revealed);
-  elements.revealBtn.textContent = revealed ? "答えを表示中" : "答えを見る";
-  elements.revealBtn.disabled = revealed;
+  elements.revealBtn.hidden = revealed;
+  elements.backBtn.hidden = !revealed;
 
   if (revealed) {
     const current = getCurrentWord();
@@ -398,7 +401,7 @@ function renderEmptyDeck() {
   elements.categoryLabel.textContent = "";
 
   const emptyMessages = {
-    review: "苦手リストに単語がありません。答えを見たあと「復習リストへ」を押して追加しよう。",
+    review: "復習リストに単語がありません。答えを見たあと「復習リストへ」を押して追加しよう。",
     favorites: "お気に入りに単語がありません。☆ボタンで追加しよう。",
     unstudied: "未学習の単語がありません。すべて一度は答えを確認済みです。",
     "exclude-known": "出題できる単語がありません。覚えた除外の条件を変えてみよう。",
@@ -417,6 +420,8 @@ function renderEmptyDeck() {
   elements.nextBtn.disabled = true;
   elements.playBtn.disabled = true;
   elements.revealBtn.disabled = true;
+  elements.backBtn.hidden = true;
+  elements.revealBtn.hidden = false;
   elements.knowBtn.disabled = true;
   elements.reviewBtn.disabled = true;
   elements.progressFill.style.width = "0%";
@@ -512,6 +517,15 @@ function goToNextCard() {
   saveProgress();
 }
 
+function hideAnswer() {
+  if (!state.revealed || getDeckSize() === 0) {
+    return;
+  }
+
+  clearAutoAdvanceTimer();
+  setRevealed(false);
+}
+
 function revealAnswer() {
   if (state.revealed || getDeckSize() === 0) {
     return;
@@ -528,6 +542,7 @@ function markAsKnown() {
 
   state.knownIds.add(current.id);
   state.reviewIds.delete(current.id);
+  showToast("覚えたとして記録しました");
   afterRating({ removedFromReview: true });
 }
 
@@ -537,8 +552,17 @@ function markForReview() {
     return;
   }
 
+  const wasAlreadyInReview = state.reviewIds.has(current.id);
   state.reviewIds.add(current.id);
   state.knownIds.delete(current.id);
+
+  if (wasAlreadyInReview) {
+    showToast(`復習リストに入っています（全${state.reviewIds.size}語）`);
+  } else {
+    showToast(`復習リストに追加しました（全${state.reviewIds.size}語）`);
+    pulseReviewBadge();
+  }
+
   afterRating({ removedFromReview: false });
 }
 
@@ -664,12 +688,22 @@ function speakCurrentWord() {
 
 function updateStats() {
   syncTodayStudiedCount();
-  elements.reviewCount.textContent = String(state.reviewIds.size);
+  const reviewTotal = String(state.reviewIds.size);
+  elements.reviewCount.textContent = reviewTotal;
+  elements.reviewBadgeCount.textContent = reviewTotal;
   elements.knownCount.textContent = String(state.knownIds.size);
   elements.unseenCount.textContent = String(WORDS.length - state.revealedIds.size);
   elements.todayStudiedCount.textContent = String(state.todayStudiedCount);
   elements.streakCount.textContent = String(state.streakCurrent);
   elements.favoriteCount.textContent = String(state.favoriteIds.size);
+  elements.reviewBadgeBtn.classList.toggle(
+    "app-bar__review-badge--active",
+    state.studyFilter === "review",
+  );
+  elements.reviewBadgeBtn.setAttribute(
+    "aria-pressed",
+    String(state.studyFilter === "review"),
+  );
 }
 
 function getCategorySummaryLabel(categoryId) {
@@ -834,7 +868,25 @@ function showToast(message) {
 
   state.toastTimer = setTimeout(() => {
     elements.toast.classList.add("toast--hidden");
-  }, 1800);
+  }, 2200);
+}
+
+function pulseReviewBadge() {
+  elements.reviewBadgeBtn.classList.remove("app-bar__review-badge--pulse");
+  void elements.reviewBadgeBtn.offsetWidth;
+  elements.reviewBadgeBtn.classList.add("app-bar__review-badge--pulse");
+}
+
+function activateReviewListFilter() {
+  if (state.reviewIds.size === 0) {
+    showToast("復習リストは空です。「復習リストへ」で追加できます");
+    setSettingsPanelOpen(true);
+    return;
+  }
+
+  state.studyFilter = "review";
+  rebuildActiveWords({ resetIndex: true });
+  showToast(`復習リスト ${state.reviewIds.size}語 を出題します`);
 }
 
 function exportProgressBackup() {
@@ -1150,6 +1202,16 @@ function bindEvents() {
     revealAnswer();
   });
 
+  elements.backBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    hideAnswer();
+  });
+
+  elements.reviewBadgeBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    activateReviewListFilter();
+  });
+
   elements.card.addEventListener("click", (event) => {
     if (event.target.closest("button")) {
       return;
@@ -1328,6 +1390,12 @@ function bindEvents() {
     }
 
     if (isTypingTarget(event.target)) {
+      return;
+    }
+
+    if (event.key === "Escape" && state.revealed && !isTypingTarget(event.target)) {
+      event.preventDefault();
+      hideAnswer();
       return;
     }
 
