@@ -47,6 +47,9 @@ const elements = {
   activeSummary: document.getElementById("activeSummary"),
   reviewBadgeBtn: document.getElementById("reviewBadgeBtn"),
   reviewBadgeCount: document.getElementById("reviewBadgeCount"),
+  filterModeBar: document.getElementById("filterModeBar"),
+  filterModeLabel: document.getElementById("filterModeLabel"),
+  exitFilterBtn: document.getElementById("exitFilterBtn"),
   backBtn: document.getElementById("backBtn"),
   searchToggleBtn: document.getElementById("searchToggleBtn"),
   settingsToggleBtn: document.getElementById("settingsToggleBtn"),
@@ -298,6 +301,7 @@ function rebuildActiveWords({ resetIndex = true, resume = false } = {}) {
   updateToolButtons();
   updateStats();
   updateActiveSummary();
+  updateFilterModeBar();
   renderCategoryChart();
   saveProgress();
 }
@@ -704,6 +708,35 @@ function updateStats() {
     "aria-pressed",
     String(state.studyFilter === "review"),
   );
+  elements.reviewBadgeBtn.setAttribute(
+    "aria-label",
+    state.studyFilter === "review"
+      ? "復習リストの出題をやめてすべてに戻る"
+      : "復習リストの単語だけ出題する",
+  );
+}
+
+function updateFilterModeBar() {
+  const isStudyFilterActive = state.studyFilter !== "all";
+  elements.filterModeBar.classList.toggle("filter-mode-bar--hidden", !isStudyFilterActive);
+
+  if (!isStudyFilterActive) {
+    return;
+  }
+
+  const studyLabel =
+    STUDY_FILTERS.find((filter) => filter.id === state.studyFilter)?.label ?? "絞り込み";
+  elements.filterModeLabel.textContent = `「${studyLabel}」で出題中`;
+}
+
+function resetStudyFilterToAll() {
+  if (state.studyFilter === "all") {
+    return;
+  }
+
+  state.studyFilter = "all";
+  rebuildActiveWords({ resetIndex: true });
+  showToast("すべての単語を出題します");
 }
 
 function getCategorySummaryLabel(categoryId) {
@@ -878,6 +911,11 @@ function pulseReviewBadge() {
 }
 
 function activateReviewListFilter() {
+  if (state.studyFilter === "review") {
+    resetStudyFilterToAll();
+    return;
+  }
+
   if (state.reviewIds.size === 0) {
     showToast("復習リストは空です。「復習リストへ」で追加できます");
     setSettingsPanelOpen(true);
@@ -1210,6 +1248,11 @@ function bindEvents() {
   elements.reviewBadgeBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     activateReviewListFilter();
+  });
+
+  elements.exitFilterBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    resetStudyFilterToAll();
   });
 
   elements.card.addEventListener("click", (event) => {

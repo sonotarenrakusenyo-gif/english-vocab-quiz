@@ -148,6 +148,44 @@ body {
   }
 }
 
+.filter-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.filter-mode-bar--hidden {
+  display: none;
+}
+
+.filter-mode-bar__label {
+  color: #e0f2fe;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.btn--filter-exit {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn--filter-exit:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 .search-panel {
   display: grid;
   gap: 8px;
