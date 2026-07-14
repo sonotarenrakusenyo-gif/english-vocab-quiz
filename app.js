@@ -318,13 +318,52 @@ function getQuizModeConfig() {
   return QUIZ_MODES[state.quizMode] ?? QUIZ_MODES.meaning;
 }
 
+function getPatternDialogue(pattern) {
+  return pattern?.dialogue ?? [];
+}
+
+function getDialogueTurnLabels(count) {
+  if (count === 3) {
+    return ["言い出し", "相槌", "返答"];
+  }
+
+  return ["言い出し", "返答"];
+}
+
+function renderDialogueLine(line, label) {
+  return `
+    <div class="dialogue-line">
+      <p class="dialogue-line__label">${label}</p>
+      <p class="dialogue-line__english">${line.english}</p>
+      <p class="dialogue-line__japanese">${line.japanese}</p>
+      <p class="dialogue-line__reading"><span class="dialogue-line__reading-label">読み</span> ${line.reading}</p>
+    </div>
+  `;
+}
+
+function formatDialoguePlainText(lines) {
+  return lines
+    .map((line, index) => {
+      const label = getDialogueTurnLabels(lines.length)[index] ?? `セリフ${index + 1}`;
+      return `${label}\n${line.english}\n${line.japanese}\n${line.reading}`;
+    })
+    .join("\n\n");
+}
+
 function pickConversationExample(word) {
   if (!word?.patterns?.length) {
     return "";
   }
 
   state.conversationExampleIndex = Math.floor(Math.random() * word.patterns.length);
-  return word.patterns[state.conversationExampleIndex].example;
+  const pattern = word.patterns[state.conversationExampleIndex];
+  const lines = getPatternDialogue(pattern);
+
+  if (lines.length === 0) {
+    return "";
+  }
+
+  return lines.map((line) => line.japanese).join("\n");
 }
 
 function setRevealed(revealed) {
@@ -440,8 +479,14 @@ function renderPatterns(patterns = []) {
   }
 
   elements.patternsContainer.innerHTML = patterns
-    .map(
-      (pattern, index) => `
+    .map((pattern, index) => {
+      const lines = getPatternDialogue(pattern);
+      const labels = getDialogueTurnLabels(lines.length);
+      const dialogueHtml = lines
+        .map((line, lineIndex) => renderDialogueLine(line, labels[lineIndex] ?? `セリフ${lineIndex + 1}`))
+        .join("");
+
+      return `
         <article class="pattern-block">
           <div class="pattern-block__head">
             <p class="pattern-block__label">パターン${index + 1}</p>
@@ -451,10 +496,10 @@ function renderPatterns(patterns = []) {
           </div>
           <p class="pattern-block__usage">${pattern.usage}</p>
           <p class="pattern-block__example-label">会話例</p>
-          <p class="pattern-block__example">${pattern.example}</p>
+          <div class="pattern-block__dialogue">${dialogueHtml}</div>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 
@@ -869,12 +914,16 @@ function toggleFavorite() {
 }
 
 function formatPatternCopy(pattern, word) {
-  return `${word.word}（${word.reading}）\n${pattern.usage}\n${pattern.example}`;
+  const lines = getPatternDialogue(pattern);
+  return `${word.word}（${word.reading}）\n${pattern.usage}\n\n${formatDialoguePlainText(lines)}`;
 }
 
 function formatWordCopyText(word) {
   const patterns = (word.patterns ?? [])
-    .map((pattern, index) => `【パターン${index + 1}】\n${pattern.usage}\n${pattern.example}`)
+    .map((pattern, index) => {
+      const lines = getPatternDialogue(pattern);
+      return `【パターン${index + 1}】\n${pattern.usage}\n\n${formatDialoguePlainText(lines)}`;
+    })
     .join("\n\n");
 
   return `${word.word}（${word.reading}）\n${word.meaning}\n\n${patterns}`;

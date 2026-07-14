@@ -819,11 +819,62 @@ body {
 }
 
 .pattern-block__example-label {
-  margin: 12px 0 6px;
+  margin: 12px 0 8px;
   color: var(--text-muted);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.pattern-block__dialogue {
+  display: grid;
+  gap: 12px;
+}
+
+.dialogue-line {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dialogue-line__label {
+  margin: 0 0 8px;
+  color: #7dd3fc;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.dialogue-line__english {
+  margin: 0 0 6px;
+  font-family: "DM Sans", "Noto Sans JP", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.6;
+  color: #e0f2fe;
+}
+
+.dialogue-line__japanese {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #e2e8f0;
+}
+
+.dialogue-line__reading {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #7dd3fc;
+  letter-spacing: 0.03em;
+}
+
+.dialogue-line__reading-label {
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
 }
 
 .pattern-block__example {
