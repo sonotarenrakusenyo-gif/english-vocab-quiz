@@ -334,8 +334,8 @@ function renderDialogueLine(line, label) {
   return `
     <div class="dialogue-line">
       <p class="dialogue-line__label">${label}</p>
-      <p class="dialogue-line__english">${line.english}</p>
       <p class="dialogue-line__japanese">${line.japanese}</p>
+      <p class="dialogue-line__english">${line.english}</p>
       <p class="dialogue-line__reading"><span class="dialogue-line__reading-label">読み</span> ${line.reading}</p>
     </div>
   `;
@@ -345,7 +345,7 @@ function formatDialoguePlainText(lines) {
   return lines
     .map((line, index) => {
       const label = getDialogueTurnLabels(lines.length)[index] ?? `セリフ${index + 1}`;
-      return `${label}\n${line.english}\n${line.japanese}\n${line.reading}`;
+      return `${label}\n${line.japanese}\n${line.english}\n${line.reading}`;
     })
     .join("\n\n");
 }
